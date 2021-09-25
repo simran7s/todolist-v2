@@ -5,13 +5,17 @@
   </div>
 
   <div class="box">
+    <form action="/delete" method="post">
       <% newListItems.forEach(item => { %>
         <div class="item">
-          <input type="checkbox">
+          <!-- check checkbox is checked, submit form, then score id in req -->
+          <input type="checkbox" name="checkbox" value="<%=item._id%>" onChange="this.form.submit()">
           <!-- Only show name field of the todo -->
           <p><%=  item.name  %></p>
         </div>
       <% }) %>
+    </form>
+    
       
    
 

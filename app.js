@@ -70,16 +70,31 @@ app.get("/", function (req, res) {
 
 app.post("/", function (req, res) {
 
-  const item = req.body.newItem;
+  const todoName = req.body.newItem;
 
-  if (req.body.list === "Work") {
-    workItems.push(item);
-    res.redirect("/work");
-  } else {
-    items.push(item);
-    res.redirect("/");
-  }
+  const newTodo = new Todo({
+    name: todoName
+  })
+
+  newTodo.save()
+  // Redirect to reload/update the tasks
+  res.redirect("/")
 });
+
+
+app.post("/delete", (req, res) => {
+  console.log(req.body.checkbox)
+
+  Todo.deleteOne({ _id: req.body.checkbox }, (err) => {
+    if (err) {
+      console.log(err)
+    } else {
+      console.log("Deleted: " + req.body.checkbox)
+      res.redirect("/")
+    }
+  })
+
+})
 
 app.get("/work", function (req, res) {
   res.render("list", { listTitle: "Work List", newListItems: workItems });
