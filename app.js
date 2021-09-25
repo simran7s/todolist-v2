@@ -30,24 +30,41 @@ const todo2 = new Todo({
   name: "Hit the + button to add a new Task"
 })
 const todo3 = new Todo({
-  name: "<--- Hit this button to delete a task"
+  name: "⬅️ Hit this button to delete a task"
 })
 
-// Inserting those default todos
-Todo.insertMany([todo1, todo2, todo3], err => {
-  if (err) {
-    console.log(err)
-  } else {
-    console.log("Added 3 default tasks")
-  }
-})
+
 
 app.get("/", function (req, res) {
-
+  //Wont be using anymore
   const day = date.getDate();
-  // listTitle is just "day" because we want to focus on mongodb instead of date.js
-  // we deleted items array now we need to send items in db
-  res.render("list", { listTitle: "Today", newListItems: items });
+
+
+  // return all todos from DB
+  Todo.find({}, (err, foundTodos) => {
+
+    // Check if todos array is empty
+    if (foundTodos.length === 0) {
+      // Inserting those default todos ONLY if db is empty
+      Todo.insertMany([todo1, todo2, todo3], err => {
+        if (err) {
+          console.log(err)
+        } else {
+          console.log("Added 3 default tasks")
+        }
+      })
+      // Redirect to home route so that todos can be displayed
+      res.redirect("/")
+    }
+    if (err) {
+      console.log(err)
+    } else {
+      // listTitle is just "day" because we want to focus on mongodb instead of date.js
+      // we deleted items array now we need to send items in db
+      res.render("list", { listTitle: day, newListItems: foundTodos });
+    }
+  })
+
 
 });
 
