@@ -1,28 +1,57 @@
 //jshint esversion:6
 
 const express = require("express");
-const bodyParser = require("body-parser");
+// const bodyParser = require("body-parser");
 const date = require(__dirname + "/date.js");
+const mongoose = require("mongoose")
 
 const app = express();
-
 app.set('view engine', 'ejs');
-
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
-const items = ["Buy Food", "Cook Food", "Eat Food"];
-const workItems = [];
+// Removed these arrays and we will now use Mongo to store them instead
+// const items = ["Buy Food", "Cook Food", "Eat Food"];
+// const workItems = [];
+mongoose.connect('mongodb://localhost:27017/todoListDB');
+const todosSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true
+  }
+})
+const Todo = mongoose.model("Todo", todosSchema)
 
-app.get("/", function(req, res) {
+// Default TODOS
+const todo1 = new Todo({
+  name: "Welcome to your new TodoList"
+})
+const todo2 = new Todo({
+  name: "Hit the + button to add a new Task"
+})
+const todo3 = new Todo({
+  name: "<--- Hit this button to delete a task"
+})
 
-const day = date.getDate();
+// Inserting those default todos
+Todo.insertMany([todo1, todo2, todo3], err => {
+  if (err) {
+    console.log(err)
+  } else {
+    console.log("Added 3 default tasks")
+  }
+})
 
-  res.render("list", {listTitle: day, newListItems: items});
+app.get("/", function (req, res) {
+
+  const day = date.getDate();
+  // listTitle is just "day" because we want to focus on mongodb instead of date.js
+  // we deleted items array now we need to send items in db
+  res.render("list", { listTitle: "Today", newListItems: items });
 
 });
 
-app.post("/", function(req, res){
+app.post("/", function (req, res) {
 
   const item = req.body.newItem;
 
@@ -35,14 +64,14 @@ app.post("/", function(req, res){
   }
 });
 
-app.get("/work", function(req,res){
-  res.render("list", {listTitle: "Work List", newListItems: workItems});
+app.get("/work", function (req, res) {
+  res.render("list", { listTitle: "Work List", newListItems: workItems });
 });
 
-app.get("/about", function(req, res){
+app.get("/about", function (req, res) {
   res.render("about");
 });
 
-app.listen(3000, function() {
+app.listen(3000, function () {
   console.log("Server started on port 3000");
 });
