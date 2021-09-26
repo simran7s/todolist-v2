@@ -1,5 +1,4 @@
 //jshint esversion:6
-
 const express = require("express");
 // const bodyParser = require("body-parser");
 const date = require(__dirname + "/date.js");
@@ -9,6 +8,11 @@ const app = express();
 app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
+
+const __HOME_ROUTE = "Today"
+
+
+
 
 // Removed these arrays and we will now use Mongo to store them instead
 // const items = ["Buy Food", "Cook Food", "Eat Food"];
@@ -43,7 +47,7 @@ const List = mongoose.model("List", listSchema)
 
 app.get("/", function (req, res) {
   //Wont be using anymore
-  const day = date.getDate();
+  // const day = date.getDate();
 
 
   // return all todos from DB
@@ -67,7 +71,7 @@ app.get("/", function (req, res) {
     } else {
       // listTitle is just "day" because we want to focus on mongodb instead of date.js
       // we deleted items array now we need to send items in db
-      res.render("list", { listTitle: day, newListItems: foundTodos });
+      res.render("list", { listTitle: __HOME_ROUTE, newListItems: foundTodos });
     }
   })
 
@@ -77,16 +81,32 @@ app.get("/", function (req, res) {
 app.post("/", function (req, res) {
 
   const todoName = req.body.newItem;
+  const listName = req.body.list;
 
   const newTodo = new Todo({
     name: todoName
   })
 
-  newTodo.save()
-  // Redirect to reload/update the tasks
-  res.redirect("/")
-});
+  if (listName.trim().toLowerCase() === __HOME_ROUTE.toLowerCase()) {
+    newTodo.save()
+    // Redirect to reload/update the tasks
+    res.redirect("/")
+  }
+  else if (listName.trim().toLowerCase() === __HOME_ROUTE.toLowerCase()) {
+    newTodo.save()
+    // Redirect to reload/update the tasks
+    res.redirect("/")
+  } else {
+    List.findOne({
+      name: listName.trim().toLowerCase()
+    }, (err, foundList) => {
+      foundList.items.push(newTodo)
+      foundList.save()
+      res.redirect("/" + listName.trim())
+    })
+  }
 
+});
 
 app.post("/delete", (req, res) => {
   console.log(req.body.checkbox)
@@ -108,24 +128,27 @@ app.get("/:customListName", (req, res) => {
     name: customListName,
     items: defaultItems
   })
-
-  List.findOne({ name: customListName }, (err, foundList) => {
-    if (err) {
-      // ERROR
-      console.log(err)
-    } else {
-      // NO ERROR
-      if (!foundList) {
-        // Create new list
-        list.save()
-        res.redirect("/" + customListName)
+  // Makes it so that a custom list cannot be created for "TODAY" (the home route)
+  if (customListName.trim().toLowerCase() === __HOME_ROUTE.toLowerCase()) {
+    res.redirect("/")
+  } else {
+    List.findOne({ name: customListName.trim().toLowerCase() }, (err, foundList) => {
+      if (err) {
+        // ERROR
+        console.log(err)
       } else {
-        // Load existing list
-        res.render("list", { listTitle: customListName, newListItems: foundList.items });
+        // NO ERROR
+        if (!foundList) {
+          // Create new list
+          list.save()
+          res.redirect("/" + customListName)
+        } else {
+          // Load existing list
+          res.render("list", { listTitle: customListName, newListItems: foundList.items });
+        }
       }
-    }
-  })
-
+    })
+  }
 })
 
 app.get("/about", function (req, res) {
