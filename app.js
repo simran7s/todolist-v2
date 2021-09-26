@@ -33,7 +33,13 @@ const todo3 = new Todo({
   name: "⬅️ Hit this button to delete a task"
 })
 
+const defaultItems = [todo1, todo2, todo3]
+const listSchema = new mongoose.Schema({
+  name: String,
+  items: [todosSchema]
+});
 
+const List = mongoose.model("List", listSchema)
 
 app.get("/", function (req, res) {
   //Wont be using anymore
@@ -96,9 +102,31 @@ app.post("/delete", (req, res) => {
 
 })
 
-app.get("/work", function (req, res) {
-  res.render("list", { listTitle: "Work List", newListItems: workItems });
-});
+app.get("/:customListName", (req, res) => {
+  const customListName = req.params.customListName;
+  const list = new List({
+    name: customListName,
+    items: defaultItems
+  })
+
+  List.findOne({ name: customListName }, (err, foundList) => {
+    if (err) {
+      // ERROR
+      console.log(err)
+    } else {
+      // NO ERROR
+      if (!foundList) {
+        // Create new list
+        list.save()
+        res.redirect("/" + customListName)
+      } else {
+        // Load existing list
+        res.render("list", { listTitle: customListName, newListItems: foundList.items });
+      }
+    }
+  })
+
+})
 
 app.get("/about", function (req, res) {
   res.render("about");
