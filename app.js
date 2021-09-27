@@ -17,7 +17,7 @@ const __HOME_ROUTE = "Today"
 // Removed these arrays and we will now use Mongo to store them instead
 // const items = ["Buy Food", "Cook Food", "Eat Food"];
 // const workItems = [];
-mongoose.connect('mongodb://localhost:27017/todoListDB');
+mongoose.connect('mongodb+srv://admin-simran:Password69!@cluster0.0ntyc.mongodb.net/todoListDB');
 const todosSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -109,16 +109,31 @@ app.post("/", function (req, res) {
 });
 
 app.post("/delete", (req, res) => {
-  console.log(req.body.checkbox)
+  const itemID = req.body.checkbox
+  const listName = req.body.listName
 
-  Todo.deleteOne({ _id: req.body.checkbox }, (err) => {
-    if (err) {
-      console.log(err)
-    } else {
-      console.log("Deleted: " + req.body.checkbox)
-      res.redirect("/")
-    }
-  })
+  if (listName.trim().toLowerCase() === __HOME_ROUTE.toLowerCase()) {
+    Todo.deleteOne({ _id: itemID }, (err) => {
+      if (err) {
+        console.log(err)
+      } else {
+        console.log("Deleted: " + req.body.checkbox)
+        res.redirect("/")
+      }
+    })
+  } else {
+    List.findOneAndUpdate(
+      { name: listName.trim().toLowerCase() },
+      { $pull: { items: { _id: itemID } } },
+      (err, foundList) => {
+        if (err) {
+          console.log(err)
+        } else {
+          res.redirect("/" + listName.trim())
+        }
+      }
+    )
+  }
 
 })
 
