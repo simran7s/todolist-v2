@@ -19,6 +19,7 @@ const __HOME_ROUTE = "Today"
 // Removed these arrays and we will now use Mongo to store them instead
 // const items = ["Buy Food", "Cook Food", "Eat Food"];
 // const workItems = [];
+
 mongoose.connect(process.env.MONGO_URL);
 const todosSchema = new mongoose.Schema({
   name: {
